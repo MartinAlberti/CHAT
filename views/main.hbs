@@ -1,0 +1,78 @@
+<div class="container mt-3  ">
+	<form id="form">
+		<div>
+			<label for='title' class="form-label">Title</label>
+			<br>
+			<input type='text' name='title' id='title' />
+		</div>
+		<div class="form-group">
+
+			<label for='price' class="form-label">Price</label>
+			<br>
+			<input type='number' name='price' id='price' />
+		</div>
+		<div class="form-group">
+
+			<label for='price' class="form-label">Thumbnail</label>
+			<br>
+			<input type='text' name='thumbnail' id='thumbnail' />
+		</div>
+		<input type='submit' value='submit' class="btn btn-dark mt-3" />
+	</form>
+	<div>
+		{{#if productos}}
+		<div class="table-responsive">
+			<table id="table" class=" table table-striped">
+				<tr class="table-dark">
+					<th>Nombre</th>
+					<th>Precio</th>
+					<th>Imagen</th>
+				</tr>
+				{{#each productos}}
+				<tr>
+					<td>{{this.title}}</td>
+					<td>{{this.price}}</td>
+					<td>
+						<img src={{this.thumbnail}} style="width: 50px;"></img>
+					</td>
+				</tr>
+				{{/each}}
+			</table>
+			{{else}}
+			<span>No hay productos</span>
+			{{/if}}
+		</div>
+	</div>
+	<div>
+		<h1>Chat</h1>
+		<form id="messages">
+
+			<label for="email">Email</label>
+			<input type="text" id="email">
+			<label for="message"></label>
+			<input type="text" id="message">
+			<button type="submit">Submit</button>
+		</form>
+		<div id="errors">
+
+		</div>
+		<hr>
+		<div>
+			<ul id="chat">
+				{{#if messages}}
+
+				{{#each messages}}
+				<li>
+					<span style="color: blue; font-weight: 600;">{{this.email}}: </span>
+					<span style="color: brown;">[{{this.date}}]</span>
+					<span style="color: green; font-style: italic;">{{this.message}}</span>
+				</li>
+				{{/each}}
+				{{else}}
+				<span>No hay mensajes</span>
+				{{/if}}
+			</ul>
+
+		</div>
+	</div>
+</div>

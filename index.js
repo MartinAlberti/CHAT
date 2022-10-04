@@ -1,88 +1,81 @@
-const express = require("express")
-const {
-    Server: HttpServer
-} = require("http");
-const {
-    Server: SocketServer
-} = require("socket.io")
+const express = require('express');
+const { engine: handlebars } = require('express-handlebars');
+const http = require('http');
+const { Server } = require('socket.io');
+const Productos = require('./Productos');
+const Mensajes = require('./Mensajes');
 
-const PORT = process.env.PORT || 8080;
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-const httpServer = new HttpServer(app);
-const io = new SocketServer(httpServer);
+app.engine(
+	'hbs',
+	handlebars({
+		layoutsDir: __dirname + '/views/layouts',
+		partialsDir: __dirname + '/views/partials',
+		defaultLayout: 'index',
+		extname: 'hbs',
+	})
+);
 
-// const messages = [{
-//     author: "Juan",
-//     text: "¡Hola! ¿Que tal?"
-// }, {
-//     author: "Pedro",
-//     text: "¡Muy bien! ¿Y vos?"
-// }, {
-//     author: "Ana",
-//     text: "¡Genial!"
-// }];
+app.set('view engine', 'hbs');
+app.set('views', __dirname + '/views');
 
-const messages = [];
-const users = [];
+app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Middlewares
+const products = new Productos();
 
-app.use(express.static("./public"));
-app.use(express.json())
-app.use(express.urlencoded({
-    extended: false
-}));
+const mensajes = new Mensajes('mensajes.json');
 
-// Routes
-app.get("/chat", (req, res) => {
-    console.log(users);
-    res.sendFile(__dirname + "/public/chat.html")
-})
+app.get('/', async (req, res) => {
+	const productos = products.getAll();
 
-app.post("/login", (req, res) => {
-    const {
-        username
-    } = req.body;
-    if (users.find(user => user.username === username)) {
-        return res.send("Username already taken");
-    }
-    res.redirect(`/chat?username=${username}`)
+	let messages = await mensajes.getAll();
 
-})
-
-// Listen
-httpServer.listen(PORT, () => {
-    console.log(`Server is up and running on port ${PORT}`);
+	res.render('main', { title: 'Productos', productos, messages });
 });
 
+io.on('connection', socket => {
+	console.log('New conection 💻:', socket.id);
 
-// Socket Events
+	socket.on('disconnect', () => {
+		console.log(socket.id, 'disconnected');
+	});
 
-io.on("connection", (socket) => {
-    console.log("usuario conectado");
+	socket.on('add-product', product => {
 
-    // Getting all messages
-    socket.emit("messages", [...messages]);
+		products.addProduct(product);
 
-    // Welcome to chat
-    socket.on("join-chat", (data) => {
-        const newUser = {
-            id: socket.id,
-            username: data.userName
-        };
-        users.push(newUser)
-        // Bot greetings
+		io.emit('update-products', product);
+	});
 
+	socket.on('message', async message => {
+		const data = {
+			email: message.email,
+			message: message.message,
+			date: new Date().toLocaleString(),
+		};
 
-    })
+		await mensajes.save(data);
 
+		io.emit('message', data);
+	});
+});
 
+app.use((err, req, res, next) => {
+	console.log(err);
+	res.status(500).json({ err, message: 'Something went wrong, sorry' });
+});
 
-    // socket.emit("server-message", "Este es un mensaje desde el servidor!");
+const PORT = process.env.PORT || 8080;
 
-    // socket.on("message", (data) => {
-    //     io.emit("server-message", data)
-    // })
+server.listen(PORT, () => {
+	console.log(`🚀 Server running on: http://localhost:${PORT}`);
+});
 
-})
+server.on('error', err => {
+	console.log(`Something went WORNG: ${err}`);
+});

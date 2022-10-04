@@ -1,20 +1,17 @@
 {
-  "name": "websocket",
+  "name": "desafio3",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "engines": {
-    "node": "16.x"
-  },
   "scripts": {
     "start": "node index.js",
     "start-dev": "nodemon index.js"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1",
-    "socket.io": "^4.5.2"
+    "express": "^4.17.3",
+    "express-handlebars": "^6.0.3",
+    "socket.io": "^4.4.1"
   }
 }
